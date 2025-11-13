@@ -3,7 +3,7 @@ import { createAPIFileRoute } from '@tanstack/start/api'
 import { requireAuth } from '~/utils/session.server'
 import { db } from '~/utils/db.server'
 
-export const Route = createAPIFileRoute('/api/messages/$userId')({
+export const Route = createAPIFileRoute('/api/messages/[userId]')({
   GET: async ({ params }) => {
     try {
       const session = await requireAuth()

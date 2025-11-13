@@ -3,7 +3,7 @@ import { createAPIFileRoute } from '@tanstack/start/api'
 import { getSession } from '~/utils/session.server'
 import { db } from '~/utils/db.server'
 
-export const Route = createAPIFileRoute('/api/subscriptions/check/$creatorId')({
+export const Route = createAPIFileRoute('/api/subscriptions/check/[creatorId]')({
   GET: async ({ params }) => {
     try {
       const { creatorId } = params

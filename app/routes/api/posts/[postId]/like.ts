@@ -3,7 +3,7 @@ import { createAPIFileRoute } from '@tanstack/start/api'
 import { requireCompleteProfile } from '~/utils/profile.server'
 import { db } from '~/utils/db.server'
 
-export const Route = createAPIFileRoute('/api/posts/$postId/like')({
+export const Route = createAPIFileRoute('/api/posts/[postId]/like')({
   POST: async ({ params }) => {
     try {
       const user = await requireCompleteProfile()
