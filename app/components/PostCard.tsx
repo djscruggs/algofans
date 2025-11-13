@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { ProfileSetupModal } from './ProfileSetupModal'
 
 interface PostCardProps {
   post: {
@@ -25,6 +26,7 @@ interface PostCardProps {
 export function PostCard({ post, isSubscribed = false }: PostCardProps) {
   const [liked, setLiked] = useState(false)
   const [likesCount, setLikesCount] = useState(post.likes)
+  const [showProfileModal, setShowProfileModal] = useState(false)
 
   const handleLike = async () => {
     try {
@@ -33,12 +35,26 @@ export function PostCard({ post, isSubscribed = false }: PostCardProps) {
       })
 
       if (response.ok) {
+        const data = await response.json()
         setLiked(!liked)
         setLikesCount(liked ? likesCount - 1 : likesCount + 1)
+      } else if (response.status === 403) {
+        const data = await response.json()
+        if (data.requiresProfile) {
+          setShowProfileModal(true)
+        }
+      } else if (response.status === 401) {
+        alert('Please connect your wallet to like posts')
       }
     } catch (error) {
       console.error('Failed to like post:', error)
     }
+  }
+
+  const handleProfileComplete = () => {
+    setShowProfileModal(false)
+    // Retry the like action
+    handleLike()
   }
 
   const isContentVisible = !post.isLocked || isSubscribed
@@ -176,6 +192,13 @@ export function PostCard({ post, isSubscribed = false }: PostCardProps) {
           </svg>
         </button>
       </div>
+
+      {/* Profile Setup Modal */}
+      <ProfileSetupModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onComplete={handleProfileComplete}
+      />
     </div>
   )
 }

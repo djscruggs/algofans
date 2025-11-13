@@ -1,12 +1,12 @@
 import { json } from '@tanstack/start'
 import { createAPIFileRoute } from '@tanstack/start/api'
-import { requireAuth } from '~/utils/session.server'
+import { requireCompleteProfile } from '~/utils/profile.server'
 import { db } from '~/utils/db.server'
 
 export const Route = createAPIFileRoute('/api/messages/send')({
   POST: async ({ request }) => {
     try {
-      const session = await requireAuth()
+      const user = await requireCompleteProfile()
       const body = await request.json()
       const { receiverId, content } = body
 
@@ -26,7 +26,7 @@ export const Route = createAPIFileRoute('/api/messages/send')({
       // Create message
       const message = await db.message.create({
         data: {
-          senderId: session.userId,
+          senderId: user.id,
           receiverId,
           content,
         },
@@ -64,6 +64,9 @@ export const Route = createAPIFileRoute('/api/messages/send')({
       console.error('Send message error:', error)
       if (error instanceof Error && error.message === 'Unauthorized') {
         return json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      if (error instanceof Error && error.message === 'Profile incomplete') {
+        return json({ error: 'Profile incomplete', requiresProfile: true }, { status: 403 })
       }
       return json({ error: 'Failed to send message' }, { status: 500 })
     }

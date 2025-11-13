@@ -1,19 +1,19 @@
 import { json } from '@tanstack/start'
 import { createAPIFileRoute } from '@tanstack/start/api'
-import { requireAuth } from '~/utils/session.server'
+import { requireCompleteProfile } from '~/utils/profile.server'
 import { db } from '~/utils/db.server'
 
 export const Route = createAPIFileRoute('/api/posts/$postId/like')({
   POST: async ({ params }) => {
     try {
-      const session = await requireAuth()
+      const user = await requireCompleteProfile()
       const { postId } = params
 
       // Check if already liked
       const existingLike = await db.like.findUnique({
         where: {
           userId_postId: {
-            userId: session.userId,
+            userId: user.id,
             postId,
           },
         },
@@ -30,7 +30,7 @@ export const Route = createAPIFileRoute('/api/posts/$postId/like')({
         // Like
         await db.like.create({
           data: {
-            userId: session.userId,
+            userId: user.id,
             postId,
           },
         })
@@ -41,6 +41,9 @@ export const Route = createAPIFileRoute('/api/posts/$postId/like')({
       console.error('Like post error:', error)
       if (error instanceof Error && error.message === 'Unauthorized') {
         return json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      if (error instanceof Error && error.message === 'Profile incomplete') {
+        return json({ error: 'Profile incomplete', requiresProfile: true }, { status: 403 })
       }
       return json({ error: 'Failed to like post' }, { status: 500 })
     }

@@ -15,6 +15,7 @@ model User {
   walletAddress String   @unique
   username      String?  @unique
   displayName   String?
+  email         String?
   bio           String?
   profileImage  String?
   coverImage    String?
