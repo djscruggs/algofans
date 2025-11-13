@@ -21,8 +21,8 @@
   "dependencies": {
     "@perawallet/connect": "^1.4.2",
     "@prisma/client": "^6.19.0",
-    "@tanstack/react-router": "1.120.20",
-    "@tanstack/start": "1.120.20",
+    "@tanstack/react-router": "1.120.17",
+    "@tanstack/start": "1.120.17",
     "@vitejs/plugin-react": "^5.1.1",
     "algosdk": "^3.5.2",
     "cookie": "^1.0.2",
@@ -45,5 +45,13 @@
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
     "vite-tsconfig-paths": "^5.1.4"
+  },
+  "overrides": {
+    "@tanstack/router-generator": "1.120.17",
+    "@tanstack/router-plugin": "1.120.17",
+    "@tanstack/start-config": "1.120.17",
+    "@tanstack/react-start-plugin": "1.120.17",
+    "@tanstack/start-plugin-core": "1.120.17",
+    "@tanstack/server-functions-plugin": "1.120.17"
   }
 }
