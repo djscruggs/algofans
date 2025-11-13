@@ -25,8 +25,11 @@ export async function login(): Promise<AuthUser> {
     const timestamp = Date.now()
     const message = `Sign this message to authenticate with Algofans.\nTimestamp: ${timestamp}`
 
-    // Sign the message
-    await signAuthMessage(walletAddress, message)
+    // Sign the message with the wallet
+    const signature = await signAuthMessage(walletAddress, message)
+
+    // Convert signature to array for JSON serialization
+    const signatureArray = Array.from(signature)
 
     // Call API to verify and create/get user session
     const response = await fetch('/api/auth/login', {
@@ -36,12 +39,14 @@ export async function login(): Promise<AuthUser> {
       },
       body: JSON.stringify({
         walletAddress,
-        timestamp,
+        message,
+        signature: signatureArray,
       }),
     })
 
     if (!response.ok) {
-      throw new Error('Authentication failed')
+      const error = await response.json()
+      throw new Error(error.error || 'Authentication failed')
     }
 
     const user = await response.json()

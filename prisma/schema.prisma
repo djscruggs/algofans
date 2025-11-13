@@ -31,6 +31,8 @@ model User {
   subscribers   Subscription[] @relation("CreatorSubscriptions")
   likes         Like[]
   comments      Comment[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
 }
 
 model Post {
@@ -90,4 +92,18 @@ model Comment {
   createdAt DateTime @default(now())
 
   @@index([postId])
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([senderId, receiverId])
+  @@index([createdAt])
 }

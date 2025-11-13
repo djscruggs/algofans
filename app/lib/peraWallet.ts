@@ -40,25 +40,27 @@ export async function disconnectWallet() {
 export async function signAuthMessage(
   walletAddress: string,
   message: string
-): Promise<{ signature: Uint8Array; message: Uint8Array }> {
+): Promise<Uint8Array> {
   try {
     const encoder = new TextEncoder()
     const messageBytes = encoder.encode(message)
+
+    // Create a zero-amount payment transaction with the auth message in the note field
+    // This is a standard way to sign arbitrary data in Algorand
+    const suggestedParams = await algodClient.getTransactionParams().do()
 
     const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       from: walletAddress,
       to: walletAddress,
       amount: 0,
-      suggestedParams: await algodClient.getTransactionParams().do(),
+      suggestedParams,
       note: messageBytes,
     })
 
-    const signedTxn = await peraWallet.signTransaction([[{ txn }]])
+    const txnGroup = [{ txn }]
+    const signedTxn = await peraWallet.signTransaction([txnGroup])
 
-    return {
-      signature: signedTxn[0],
-      message: messageBytes,
-    }
+    return signedTxn[0]
   } catch (error) {
     console.error('Failed to sign message:', error)
     throw error
