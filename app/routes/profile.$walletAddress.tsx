@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PostCard } from '~/components/PostCard'
 
 export const Route = createFileRoute('/profile/$walletAddress')({
@@ -9,6 +9,7 @@ export const Route = createFileRoute('/profile/$walletAddress')({
 function Profile() {
   const { walletAddress } = Route.useParams()
   const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isSubscribing, setIsSubscribing] = useState(false)
 
   // Mock profile data
   const profile = {
@@ -49,9 +50,70 @@ function Profile() {
     },
   ]
 
+  // Check subscription status on mount
+  useEffect(() => {
+    async function checkSubscription() {
+      try {
+        const response = await fetch(`/api/subscriptions/check/${profile.walletAddress}`)
+        if (response.ok) {
+          const data = await response.json()
+          setIsSubscribed(data.isSubscribed)
+        }
+      } catch (error) {
+        console.error('Failed to check subscription:', error)
+      }
+    }
+    checkSubscription()
+  }, [walletAddress])
+
   const handleSubscribe = async () => {
-    // TODO: Implement subscription logic
-    setIsSubscribed(!isSubscribed)
+    if (isSubscribed) {
+      // Unsubscribe
+      try {
+        setIsSubscribing(true)
+        const response = await fetch('/api/subscriptions/unsubscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creatorId: profile.walletAddress }),
+        })
+
+        if (response.ok) {
+          setIsSubscribed(false)
+        } else {
+          const data = await response.json()
+          alert(data.error || 'Failed to unsubscribe')
+        }
+      } catch (error) {
+        console.error('Unsubscribe failed:', error)
+        alert('Failed to unsubscribe')
+      } finally {
+        setIsSubscribing(false)
+      }
+    } else {
+      // Subscribe
+      try {
+        setIsSubscribing(true)
+        const response = await fetch('/api/subscriptions/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creatorId: profile.walletAddress }),
+        })
+
+        if (response.ok) {
+          setIsSubscribed(true)
+        } else if (response.status === 401) {
+          alert('Please connect your wallet to subscribe')
+        } else {
+          const data = await response.json()
+          alert(data.error || 'Failed to subscribe')
+        }
+      } catch (error) {
+        console.error('Subscribe failed:', error)
+        alert('Failed to subscribe')
+      } finally {
+        setIsSubscribing(false)
+      }
+    }
   }
 
   return (
@@ -92,9 +154,14 @@ function Profile() {
             <div className="flex justify-end pt-4">
               <button
                 onClick={handleSubscribe}
+                disabled={isSubscribing}
                 className={isSubscribed ? 'btn-secondary' : 'btn-primary'}
               >
-                {isSubscribed ? 'Subscribed ✓' : `Subscribe - $${profile.subscriptionPrice}/mo`}
+                {isSubscribing
+                  ? 'Processing...'
+                  : isSubscribed
+                    ? 'Subscribed ✓'
+                    : `Subscribe - $${profile.subscriptionPrice}/mo`}
               </button>
             </div>
           )}
@@ -128,29 +195,75 @@ function Profile() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-800 mb-8">
-          <div className="flex space-x-8">
-            <button className="pb-4 border-b-2 border-primary text-primary font-semibold">
-              Posts
-            </button>
-            <button className="pb-4 text-gray-400 hover:text-white transition-colors">
-              Media
-            </button>
-            <button className="pb-4 text-gray-400 hover:text-white transition-colors">
-              About
-            </button>
-          </div>
-        </div>
+        {/* Only show content if subscribed */}
+        {isSubscribed ? (
+          <>
+            {/* Tabs */}
+            <div className="border-b border-gray-800 mb-8">
+              <div className="flex space-x-8">
+                <button className="pb-4 border-b-2 border-primary text-primary font-semibold">
+                  Posts
+                </button>
+                <button className="pb-4 text-gray-400 hover:text-white transition-colors">
+                  Media
+                </button>
+                <button className="pb-4 text-gray-400 hover:text-white transition-colors">
+                  About
+                </button>
+              </div>
+            </div>
 
-        {/* Posts */}
-        <div className="max-w-2xl mx-auto pb-8">
-          <div className="space-y-6">
-            {posts.map((post) => (
-              <PostCard key={post.id} post={post} isSubscribed={isSubscribed} />
-            ))}
-          </div>
-        </div>
+            {/* Posts */}
+            <div className="max-w-2xl mx-auto pb-8">
+              <div className="space-y-6">
+                {posts.map((post) => (
+                  <PostCard key={post.id} post={post} isSubscribed={isSubscribed} />
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Locked Content Message */}
+            <div className="max-w-2xl mx-auto pb-8">
+              <div className="card p-12 text-center">
+                <svg
+                  className="w-20 h-20 text-primary mb-6 mx-auto"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <h3 className="text-2xl font-bold mb-3">Exclusive Content</h3>
+                <p className="text-gray-400 mb-6 max-w-md mx-auto">
+                  Subscribe to {profile.displayName || 'this creator'} to unlock their exclusive posts, photos, and videos
+                </p>
+                <div className="flex items-center justify-center space-x-4 mb-8">
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-primary">{profile.postCount}</p>
+                    <p className="text-sm text-gray-400">Posts</p>
+                  </div>
+                  <div className="h-12 w-px bg-gray-700"></div>
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-primary">{profile.subscriberCount.toLocaleString()}</p>
+                    <p className="text-sm text-gray-400">Subscribers</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleSubscribe}
+                  disabled={isSubscribing}
+                  className="btn-primary text-lg px-8"
+                >
+                  {isSubscribing ? 'Processing...' : `Subscribe for $${profile.subscriptionPrice}/month`}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
