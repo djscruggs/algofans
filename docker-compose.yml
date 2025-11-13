@@ -1,0 +1,37 @@
+# --------------------------------------------------
+# CSDS Development Environment - Database Only
+# For local development with Docker database
+# --------------------------------------------------
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: algofans-postgres-dev
+    environment:
+      POSTGRES_DB: algofans
+      POSTGRES_USER: algofans
+      POSTGRES_PASSWORD: algofans
+    ports:
+      - "54333:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U algofans -d algofans"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: algofans-redis-dev
+    ports:
+      - "63799:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
