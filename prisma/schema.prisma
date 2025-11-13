@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  walletAddress String   @unique
+  username      String?  @unique
+  displayName   String?
+  bio           String?
+  profileImage  String?
+  coverImage    String?
+  isCreator     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Creator-specific fields
+  subscriptionPrice Decimal? @db.Decimal(10, 2)
+
+  // Relations
+  posts         Post[]
+  subscriptions Subscription[] @relation("UserSubscriptions")
+  subscribers   Subscription[] @relation("CreatorSubscriptions")
+  likes         Like[]
+  comments      Comment[]
+}
+
+model Post {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     String?
+  mediaUrls   String[]
+  mediaType   String?  // 'image', 'video'
+  isLocked    Boolean  @default(false) // Locked for subscribers only
+  price       Decimal? @db.Decimal(10, 2) // Optional pay-per-view price
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  likes       Like[]
+  comments    Comment[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Subscription {
+  id          String   @id @default(uuid())
+  userId      String   // The subscriber
+  creatorId   String   // The creator being subscribed to
+  user        User     @relation("UserSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  creator     User     @relation("CreatorSubscriptions", fields: [creatorId], references: [id], onDelete: Cascade)
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, creatorId])
+  @@index([userId])
+  @@index([creatorId])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
