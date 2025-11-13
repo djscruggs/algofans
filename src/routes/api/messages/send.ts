@@ -1,35 +1,37 @@
-import { json } from '@tanstack/start'
-import { createAPIFileRoute } from '@tanstack/start/api'
+import { createFileRoute } from '@tanstack/react-router'
+import { json } from '@tanstack/react-start'
 import { requireCompleteProfile } from '~/utils/profile.server'
 import { db } from '~/utils/db.server'
 
-export const Route = createAPIFileRoute('/api/messages/send')({
-  POST: async ({ request }) => {
-    try {
-      const user = await requireCompleteProfile()
-      const body = await request.json()
-      const { receiverId, content } = body
+export const Route = createFileRoute('/api/messages/send')({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+          const user = await requireCompleteProfile()
+          const body = await request.json()
+          const { receiverId, content } = body
 
-      if (!receiverId || !content) {
-        return json({ error: 'Missing required fields' }, { status: 400 })
-      }
+          if (!receiverId || !content) {
+            return json({ error: 'Missing required fields' }, { status: 400 })
+          }
 
       // Verify receiver exists
-      const receiver = await db.user.findUnique({
-        where: { id: receiverId },
-      })
+          const receiver = await db.user.findUnique({
+            where: { id: receiverId },
+          })
 
-      if (!receiver) {
-        return json({ error: 'Receiver not found' }, { status: 404 })
-      }
+          if (!receiver) {
+            return json({ error: 'Receiver not found' }, { status: 404 })
+          }
 
       // Create message
-      const message = await db.message.create({
-        data: {
-          senderId: user.id,
-          receiverId,
-          content,
-        },
+          const message = await db.message.create({
+            data: {
+              senderId: user.id,
+              receiverId,
+              content,
+      },
         include: {
           sender: {
             select: {
@@ -70,5 +72,7 @@ export const Route = createAPIFileRoute('/api/messages/send')({
       }
       return json({ error: 'Failed to send message' }, { status: 500 })
     }
+      },
+    },
   },
 })

@@ -1,22 +1,24 @@
-import { json } from '@tanstack/start'
-import { createAPIFileRoute } from '@tanstack/start/api'
+import { createFileRoute } from '@tanstack/react-router'
+import { json } from '@tanstack/react-start'
 import { requireAuth } from '~/utils/session.server'
 import { db } from '~/utils/db.server'
 
-export const Route = createAPIFileRoute('/api/messages/[userId]')({
-  GET: async ({ params }) => {
-    try {
-      const session = await requireAuth()
-      const { userId: otherUserId } = params
+export const Route = createFileRoute('/api/messages/userId')({
+  server: {
+    handlers: {
+      GET: async ({ params }) => {
+        try {
+          const session = await requireAuth()
+          const { userId: otherUserId } = params
 
       // Get messages between current user and other user
-      const messages = await db.message.findMany({
-        where: {
-          OR: [
-            { senderId: session.userId, receiverId: otherUserId },
-            { senderId: otherUserId, receiverId: session.userId },
-          ],
-        },
+          const messages = await db.message.findMany({
+            where: {
+              OR: [
+                { senderId: session.userId, receiverId: otherUserId },
+                { senderId: otherUserId, receiverId: session.userId },
+              ],
+      },
         include: {
           sender: {
             select: {
@@ -62,5 +64,7 @@ export const Route = createAPIFileRoute('/api/messages/[userId]')({
       }
       return json({ error: 'Failed to get messages' }, { status: 500 })
     }
+      },
+    },
   },
 })

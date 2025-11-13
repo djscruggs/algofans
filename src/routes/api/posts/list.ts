@@ -1,29 +1,31 @@
-import { json } from '@tanstack/start'
-import { createAPIFileRoute } from '@tantml:start/api'
+import { createFileRoute } from '@tanstack/react-router'
+import { json } from '@tanstack/react-start'
 import { db } from '~/utils/db.server'
 import { getSession } from '~/utils/session.server'
 
-export const Route = createAPIFileRoute('/api/posts/list')({
-  GET: async ({ request }) => {
-    try {
-      const url = new URL(request.url)
-      const userId = url.searchParams.get('userId')
-      const limit = parseInt(url.searchParams.get('limit') || '20')
-      const offset = parseInt(url.searchParams.get('offset') || '0')
+export const Route = createFileRoute('/api/posts/list')({
+  server: {
+    handlers: {
+      GET: async ({ request }) => {
+        try {
+          const url = new URL(request.url)
+          const userId = url.searchParams.get('userId')
+          const limit = parseInt(url.searchParams.get('limit') || '20')
+          const offset = parseInt(url.searchParams.get('offset') || '0')
 
-      const session = await getSession()
+          const session = await getSession()
 
-      const posts = await db.post.findMany({
-        where: userId ? { userId } : undefined,
-        include: {
-          user: {
-            select: {
-              id: true,
-              walletAddress: true,
-              username: true,
-              displayName: true,
-              profileImage: true,
-            },
+          const posts = await db.post.findMany({
+            where: userId ? { userId } : undefined,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  walletAddress: true,
+                  username: true,
+                  displayName: true,
+                  profileImage: true,
+      },
           },
           _count: {
             select: {
@@ -71,5 +73,7 @@ export const Route = createAPIFileRoute('/api/posts/list')({
       console.error('List posts error:', error)
       return json({ error: 'Failed to list posts' }, { status: 500 })
     }
+      },
+    },
   },
 })

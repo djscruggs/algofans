@@ -1,21 +1,23 @@
-import { json } from '@tanstack/start'
-import { createAPIFileRoute } from '@tanstack/start/api'
+import { createFileRoute } from '@tanstack/react-router'
+import { json } from '@tanstack/react-start'
 import { requireCompleteProfile } from '~/utils/profile.server'
 import { db } from '~/utils/db.server'
 
-export const Route = createAPIFileRoute('/api/posts/[postId]/like')({
-  POST: async ({ params }) => {
-    try {
-      const user = await requireCompleteProfile()
-      const { postId } = params
+export const Route = createFileRoute('/api/posts/postId/like')({
+  server: {
+    handlers: {
+      POST: async ({ params }) => {
+        try {
+          const user = await requireCompleteProfile()
+          const { postId } = params
 
       // Check if already liked
-      const existingLike = await db.like.findUnique({
-        where: {
-          userId_postId: {
-            userId: user.id,
-            postId,
-          },
+          const existingLike = await db.like.findUnique({
+            where: {
+              userId_postId: {
+                userId: user.id,
+                postId,
+      },
         },
       })
 
@@ -47,5 +49,7 @@ export const Route = createAPIFileRoute('/api/posts/[postId]/like')({
       }
       return json({ error: 'Failed to like post' }, { status: 500 })
     }
+    },
+    },
   },
 })

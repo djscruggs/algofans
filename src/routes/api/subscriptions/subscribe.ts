@@ -1,44 +1,46 @@
-import { json } from '@tanstack/start'
-import { createAPIFileRoute } from '@tanstack/start/api'
+import { createFileRoute } from '@tanstack/react-router'
+import { json } from '@tanstack/react-start'
 import { requireAuth } from '~/utils/session.server'
 import { db } from '~/utils/db.server'
 
-export const Route = createAPIFileRoute('/api/subscriptions/subscribe')({
-  POST: async ({ request }) => {
-    try {
-      const session = await requireAuth()
-      const body = await request.json()
-      const { creatorId } = body
+export const Route = createFileRoute('/api/subscriptions/subscribe')({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+          const session = await requireAuth()
+          const body = await request.json()
+          const { creatorId } = body
 
-      if (!creatorId) {
-        return json({ error: 'Creator ID is required' }, { status: 400 })
-      }
+          if (!creatorId) {
+            return json({ error: 'Creator ID is required' }, { status: 400 })
+          }
 
       // Check if creator exists
-      const creator = await db.user.findUnique({
-        where: { id: creatorId },
-      })
+          const creator = await db.user.findUnique({
+            where: { id: creatorId },
+          })
 
-      if (!creator) {
-        return json({ error: 'Creator not found' }, { status: 404 })
-      }
+          if (!creator) {
+            return json({ error: 'Creator not found' }, { status: 404 })
+          }
 
-      if (!creator.isCreator) {
-        return json({ error: 'User is not a creator' }, { status: 400 })
-      }
+          if (!creator.isCreator) {
+            return json({ error: 'User is not a creator' }, { status: 400 })
+          }
 
       // Can't subscribe to yourself
-      if (session.userId === creatorId) {
-        return json({ error: 'Cannot subscribe to yourself' }, { status: 400 })
-      }
+          if (session.userId === creatorId) {
+            return json({ error: 'Cannot subscribe to yourself' }, { status: 400 })
+          }
 
       // Check if already subscribed
-      const existingSub = await db.subscription.findUnique({
-        where: {
-          userId_creatorId: {
-            userId: session.userId,
-            creatorId,
-          },
+          const existingSub = await db.subscription.findUnique({
+            where: {
+              userId_creatorId: {
+                userId: session.userId,
+                creatorId,
+      },
         },
       })
 
@@ -76,5 +78,7 @@ export const Route = createAPIFileRoute('/api/subscriptions/subscribe')({
       }
       return json({ error: 'Failed to subscribe' }, { status: 500 })
     }
+      },
+    },
   },
 })

@@ -1,21 +1,23 @@
-import { json } from '@tanstack/start'
-import { createAPIFileRoute } from '@tanstack/start/api'
+import { createFileRoute } from '@tanstack/react-router'
+import { json } from '@tanstack/react-start'
 import { requireAuth } from '~/utils/session.server'
 import { db } from '~/utils/db.server'
 
-export const Route = createAPIFileRoute('/api/messages/conversations')({
-  GET: async () => {
-    try {
-      const session = await requireAuth()
+export const Route = createFileRoute('/api/messages/conversations')({
+  server: {
+    handlers: {
+      GET: async () => {
+        try {
+          const session = await requireAuth()
 
       // Get all unique conversations
-      const messages = await db.message.findMany({
-        where: {
-          OR: [
-            { senderId: session.userId },
-            { receiverId: session.userId },
-          ],
-        },
+          const messages = await db.message.findMany({
+            where: {
+              OR: [
+                { senderId: session.userId },
+                { receiverId: session.userId },
+              ],
+      },
         include: {
           sender: {
             select: {
@@ -92,5 +94,7 @@ export const Route = createAPIFileRoute('/api/messages/conversations')({
       }
       return json({ error: 'Failed to get conversations' }, { status: 500 })
     }
+      },
+    },
   },
 })
