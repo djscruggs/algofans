@@ -21,11 +21,8 @@
   "dependencies": {
     "@perawallet/connect": "^1.4.2",
     "@prisma/client": "^6.19.0",
-    "@tanstack/react-router": "^1.135.2",
-    "@tanstack/react-start": "^1.135.2",
-    "@tanstack/router-devtools": "^1.135.2",
-    "@tanstack/router-plugin": "^1.135.2",
-    "@tanstack/start": "^1.120.20",
+    "@tanstack/react-router": "1.120.20",
+    "@tanstack/start": "1.120.20",
     "@vitejs/plugin-react": "^5.1.1",
     "algosdk": "^3.5.2",
     "cookie": "^1.0.2",

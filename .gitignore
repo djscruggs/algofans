@@ -46,3 +46,6 @@ migrations/
 
 # TanStack Router
 .tanstack/
+
+# Build artifacts
+app.config.timestamp_*.js
