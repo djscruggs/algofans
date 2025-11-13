@@ -1,0 +1,52 @@
+{
+  "name": "algofans",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "start": "vite start",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:22735/git/djscruggs/algofans"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@perawallet/connect": "^1.4.2",
+    "@prisma/client": "^6.19.0",
+    "@tanstack/react-router": "^1.120.17",
+    "@tanstack/react-start": "^1.135.2",
+    "algosdk": "^3.5.2",
+    "cookie": "^1.0.2",
+    "date-fns": "^4.1.0",
+    "iron-session": "^8.0.4",
+    "multer": "^2.0.2",
+    "nanoid": "^5.1.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.4",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "prisma": "^6.19.0",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2",
+    "vite-tsconfig-paths": "^5.1.4"
+  },
+  "overrides": {}
+}
